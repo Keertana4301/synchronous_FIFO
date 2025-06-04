@@ -1,4 +1,3 @@
-# synchronous_FIFO
 # Synchronous FIFO (First In First Out) Buffer
 
 ## Overview
@@ -11,7 +10,7 @@ This project implements a parameterizable synchronous FIFO buffer in SystemVeril
 - **Parameterizable**: Configurable data width (16-bit default) and FIFO depth (16 default)
 - **Full/Empty Detection**: Status flags for buffer management
 - **UVM Testbench**: Complete verification environment with sequences, drivers, and agents
-- **EDA Tools Integration**: Verified with Questa Sim and EDAPlayground
+- **EDA Tools Integration**: Verified with Questa Sim in EDAPlayground
 - **Physical Implementation**: Layout generated using OpenLane and KLayout
 
 ## Architecture
@@ -74,27 +73,6 @@ This project implements a parameterizable synchronous FIFO buffer in SystemVeril
 constraint c_write_read {write_en != read_en;}
 ```
 This ensures that write and read operations don't occur simultaneously, preventing conflicts.
-
-## File Structure
-
-```
-synchronous_FIFO/
-├── rtl/
-│   └── sync_fifo.sv            # Main FIFO RTL module
-├── verification/
-│   └── fifo_tb.sv              # Complete UVM testbench
-├── simulation/
-│   ├── questa_sim/             # Questa simulation files
-│   └── edaplayground/          # EDAPlayground setup
-├── physical/
-│   ├── openlane/               # OpenLane synthesis files
-│   └── klayout/                # KLayout layout views
-├── results/
-│   ├── simulation_waves.vcd    # Simulation waveforms
-│   ├── layout_view.gds         # Physical layout
-│   └── synthesis_reports/      # OpenLane reports
-└── README.md                   # This file
-```
 
 ## RTL Implementation Details
 
@@ -196,14 +174,6 @@ The design has been successfully synthesized and implemented using the OpenLane 
 
 ## Simulation Results
 
-### Test Coverage
-- ✅ Basic write/read operations
-- ✅ Full/empty flag functionality  
-- ✅ Pointer wrap-around behavior
-- ✅ Reset functionality
-- ✅ Random data patterns
-- ✅ Overflow/underflow protection
-
 ### Timing Analysis
 - **Clock Period**: 10ns (100MHz)
 - **Reset Duration**: 20ns
@@ -228,47 +198,4 @@ The design has been successfully synthesized and implemented using the OpenLane 
 - **Pipeline Buffers**: In processor and DSP designs
 - **Communication Systems**: Packet buffering applications
 
-## Future Enhancements
 
-- [ ] Monitor component for output checking
-- [ ] Scoreboard for data integrity verification
-- [ ] Coverage collector for functional coverage
-- [ ] Multiple test scenarios (directed tests)
-- [ ] Almost full/empty flags
-- [ ] Performance counters
-- [ ] Power analysis integration
-
-## Known Limitations
-
-1. **Single Clock Domain**: Not suitable for asynchronous operation
-2. **Basic Status Flags**: No almost full/empty indicators
-3. **No Error Checking**: Missing overflow/underflow error reporting
-4. **Limited Coverage**: Basic functional verification only
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/enhancement`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/enhancement`)
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Author
-
-**Keertana**
-- GitHub: [@Keertana4301](https://github.com/Keertana4301)
-
-## Acknowledgments
-
-- **UVM Community**: For verification methodology
-- **OpenLane Team**: For open-source ASIC flow
-- **EDAPlayground**: For online simulation platform
-- **Sky130 PDK**: For open-source process technology
-
----
-
-**Note**: This project demonstrates a complete digital design flow from RTL to physical implementation with comprehensive verification using industry-standard methodologies.
