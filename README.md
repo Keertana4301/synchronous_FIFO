@@ -128,19 +128,6 @@ make mount
 ./flow.tcl -design sync_fifo
 ```
 
-**Interactive Mode (Optional):**
-```bash
-./flow.tcl -interactive
-package require openlane 0.9
-prep -design sync_fifo
-run_synthesis
-run_floorplan  
-run_placement
-run_cts
-run_routing
-run_magic
-```
-
 ### 5. Locate Output Files
 
 ```bash
