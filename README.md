@@ -56,10 +56,7 @@ cd ~/OpenLane/designs/sync_fifo
 Create `sync_fifo.v`:
 
 ```verilog
-module sync_fifo #(
-    parameter DEPTH = 16,
-    parameter WIDTH = 16
-)(
+module sync_fifo #(parameter DEPTH = 16, WIDTH = 16)(
     input clk,
     input rst_n,
     input write_en,
@@ -70,34 +67,31 @@ module sync_fifo #(
     output empty
 );
 
-    // Memory array and pointers
-    reg [WIDTH-1:0] fifo [0:DEPTH-1];
-    reg [$clog2(DEPTH)-1:0] write_ptr, read_ptr;
-    
-    // Write operation
-    always @(posedge clk) begin
-        if (!rst_n) begin
-            write_ptr <= 0;
-        end else if (write_en && !full) begin
-            fifo[write_ptr] <= data_in;
-            write_ptr <= write_ptr + 1;
-        end
+  reg [$clog2(DEPTH)-1:0] write_ptr, read_ptr;
+  reg [WIDTH-1:0] fifo [0:DEPTH-1];
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      write_ptr <= 0;
+      read_ptr <= 0;
+      data_out <= 0;
+    end else begin
+      // Write logic
+      if (write_en && !full) begin
+        fifo[write_ptr] <= data_in;
+        write_ptr <= write_ptr + 1;
+      end
+
+      // Read logic
+      if (read_en && !empty) begin
+        data_out <= fifo[read_ptr];
+        read_ptr <= read_ptr + 1;
+      end
     end
-    
-    // Read operation
-    always @(posedge clk) begin
-        if (!rst_n) begin
-            read_ptr <= 0;
-            data_out <= 0;
-        end else if (read_en && !empty) begin
-            data_out <= fifo[read_ptr];
-            read_ptr <= read_ptr + 1;
-        end
-    end
-    
-    // Status flags
-    assign full = ((write_ptr + 1'b1) == read_ptr);
-    assign empty = (write_ptr == read_ptr);
+  end
+
+  assign full = ((write_ptr + 1'b1) == read_ptr);
+  assign empty = (write_ptr == read_ptr);
 
 endmodule
 ```
