@@ -1,6 +1,6 @@
-# Synchronous FIFO: Verilog to GDS Layout Implementation
+# Synchronous FIFO:
 
-This guide demonstrates the complete flow from RTL design to physical layout using a synchronous FIFO buffer as an example, implemented with OpenLane (Ubuntu/Linux) and visualized with KLayout (Windows).
+This project implements a parameterizable synchronous FIFO buffer in SystemVerilog with a comprehensive UVM (Universal Verification Methodology) testbench. The design features a 16-deep, 16-bit wide FIFO with full UVM verification environment including proper sequencing, driving, and monitoring capabilities.
 
 ## Project Overview
 
