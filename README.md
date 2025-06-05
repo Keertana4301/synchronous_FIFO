@@ -142,13 +142,6 @@ run -all
 ### OpenLane Flow
 The design has been successfully synthesized and implemented using the OpenLane flow:
 
-1. **Synthesis**: RTL to gate-level conversion
-2. **Floorplanning**: Die and core area definition
-3. **Placement**: Standard cell placement
-4. **Clock Tree Synthesis**: Clock distribution
-5. **Routing**: Metal layer interconnections
-6. **Physical Verification**: DRC and LVS checks
-
 ### KLayout Integration
 - **Layout Visualization**: Complete physical layout view
 - **Layer Stack**: Standard digital CMOS layers
@@ -179,6 +172,8 @@ The design has been successfully synthesized and implemented using the OpenLane 
 - **Reset Duration**: 20ns
 
 ![Simulations](https://github.com/user-attachments/assets/bcaeb8a6-6eda-434e-aca0-f1d01af5dfa7)
+### KLayout View
+![KLayout_view](https://github.com/user-attachments/assets/446027ab-5a73-4461-aa02-026a9b9fa61a)
 
 ## Applications
 
