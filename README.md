@@ -1,21 +1,16 @@
-# Synchronous FIFO (First In First Out) Buffer
+# Synchronous FIFO: Verilog to GDS Layout Implementation
 
-## Overview
+This guide demonstrates the complete flow from RTL design to physical layout using a synchronous FIFO buffer as an example, implemented with OpenLane (Ubuntu/Linux) and visualized with KLayout (Windows).
 
-This project implements a parameterizable synchronous FIFO buffer in SystemVerilog with a comprehensive UVM (Universal Verification Methodology) testbench. The design features a 16-deep, 16-bit wide FIFO with full UVM verification environment including proper sequencing, driving, and monitoring capabilities.
+## Project Overview
 
-## Features
+**Synchronous FIFO Buffer Implementation**
+- 16-deep, 16-bit wide parameterizable FIFO
+- Single clock domain design with full/empty detection
+- Complete physical implementation flow
+- UVM testbench verified design
 
-- **Synchronous Operation**: Single clock domain design
-- **Parameterizable**: Configurable data width (16-bit default) and FIFO depth (16 default)
-- **Full/Empty Detection**: Status flags for buffer management
-- **UVM Testbench**: Complete verification environment with sequences, drivers, and agents
-- **EDA Tools Integration**: Verified with Questa Sim in EDAPlayground
-- **Physical Implementation**: Layout generated using OpenLane and KLayout
-
-## Architecture
-
-### RTL Design Block Diagram
+### RTL Architecture
 ```
     ┌─────────────────────────────────────┐
     │        Synchronous FIFO             │
@@ -36,15 +31,163 @@ This project implements a parameterizable synchronous FIFO buffer in SystemVeril
     └─────────────────────────────────────┘
 ```
 
-## RTL Module Interface
+## Prerequisites
 
-### Parameters
+### Software Requirements
+- **Ubuntu/Linux**: OpenLane installation
+- **Windows**: KLayout installation
+- **File Transfer**: Shared folder, WSL, or USB drive
+
+### Installation
+- [OpenLane](https://github.com/The-OpenROAD-Project/OpenLane)
+- [KLayout](https://www.klayout.de/build.html)
+
+## Step-by-Step Implementation
+
+### 1. Create Design Directory
+
+```bash
+mkdir -p ~/OpenLane/designs/sync_fifo
+cd ~/OpenLane/designs/sync_fifo
+```
+
+### 2. RTL Implementation
+
+Create `sync_fifo.v`:
+
+```verilog
+module sync_fifo #(
+    parameter DEPTH = 16,
+    parameter WIDTH = 16
+)(
+    input clk,
+    input rst_n,
+    input write_en,
+    input read_en,
+    input [WIDTH-1:0] data_in,
+    output reg [WIDTH-1:0] data_out,
+    output full,
+    output empty
+);
+
+    // Memory array and pointers
+    reg [WIDTH-1:0] fifo [0:DEPTH-1];
+    reg [$clog2(DEPTH)-1:0] write_ptr, read_ptr;
+    
+    // Write operation
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            write_ptr <= 0;
+        end else if (write_en && !full) begin
+            fifo[write_ptr] <= data_in;
+            write_ptr <= write_ptr + 1;
+        end
+    end
+    
+    // Read operation
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            read_ptr <= 0;
+            data_out <= 0;
+        end else if (read_en && !empty) begin
+            data_out <= fifo[read_ptr];
+            read_ptr <= read_ptr + 1;
+        end
+    end
+    
+    // Status flags
+    assign full = ((write_ptr + 1'b1) == read_ptr);
+    assign empty = (write_ptr == read_ptr);
+
+endmodule
+```
+
+### 3. OpenLane Configuration
+
+Create `config.tcl`:
+
+```tcl
+# Design Configuration
+set ::env(DESIGN_NAME) sync_fifo
+
+# Source Files
+set ::env(VERILOG_FILES) [glob $::env(DESIGN_DIR)/sync_fifo.v]
+
+# Clock Configuration
+set ::env(CLOCK_PERIOD) "10"
+set ::env(CLOCK_PORT) "clk"
+
+# Reset Configuration  
+set ::env(RST_PORT) "rst_n"
+
+# Design Constraints
+set ::env(FP_SIZING) absolute
+set ::env(DIE_AREA) "0 0 150 150"
+set ::env(FP_CORE_UTIL) 40
+```
+
+### 4. Run OpenLane Flow
+
+```bash
+cd ~/OpenLane
+make mount
+./flow.tcl -design sync_fifo
+```
+
+**Interactive Mode (Optional):**
+```bash
+./flow.tcl -interactive
+package require openlane 0.9
+prep -design sync_fifo
+run_synthesis
+run_floorplan  
+run_placement
+run_cts
+run_routing
+run_magic
+```
+
+### 5. Locate Output Files
+
+```bash
+cd ~/OpenLane/designs/sync_fifo/runs/
+find . -name "*.gds" -type f
+```
+
+Key output files in `*/results/final/`:
+- **`sync_fifo.gds`** - GDSII layout file
+- **`sync_fifo.lef`** - Library Exchange Format
+- **`sync_fifo.def`** - Design Exchange Format  
+- **`sync_fifo.v`** - Gate-level netlist
+
+### 6. Transfer to Windows
+
+**WSL Method:**
+```bash
+cp sync_fifo.gds /mnt/c/Users/YourUsername/Desktop/
+```
+
+**VM Shared Folder:**
+```bash
+cp sync_fifo.gds /path/to/shared/folder/
+```
+
+### 7. View in KLayout (Windows)
+
+1. Launch **KLayout**
+2. `File > Open` → Select `sync_fifo.gds`
+3. Navigate layers using the layer panel
+4. Use `F2` to fit layout in window
+
+## Design Specifications
+
+### Module Parameters
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `DEPTH` | 16 | Number of storage locations |
-| `WIDTH` | 16 | Width of data bus in bits |
+| `DEPTH` | 16 | FIFO depth (storage locations) |
+| `WIDTH` | 16 | Data width in bits |
 
-### Ports
+### Interface Ports
 | Port | Direction | Width | Description |
 |------|-----------|-------|-------------|
 | `clk` | Input | 1 | System clock |
@@ -56,123 +199,28 @@ This project implements a parameterizable synchronous FIFO buffer in SystemVeril
 | `full` | Output | 1 | FIFO full flag |
 | `empty` | Output | 1 | FIFO empty flag |
 
-## UVM Testbench Architecture
-
-### Verification Components
-
-1. **fifo_seq_item**: Transaction class with randomized data and control signals
-2. **fifo_sequence**: Generates 10 random transactions with write/read constraint
-3. **fifo_sequencer**: Standard UVM sequencer for transaction flow
-4. **fifo_driver**: Drives interface signals based on sequence items
-5. **fifo_agent**: Contains sequencer and driver components
-6. **fifo_env**: Environment containing the agent
-7. **fifo_test**: Top-level test class
-
-### Key Constraint
-```systemverilog
-constraint c_write_read {write_en != read_en;}
-```
-This ensures that write and read operations don't occur simultaneously, preventing conflicts.
-
-## RTL Implementation Details
-
-### Memory Structure
-- **Storage**: 16-word x 16-bit memory array
-- **Pointers**: 4-bit write and read pointers (log2(16))
-- **Reset Behavior**: Synchronous reset clears pointers and output
+## Key Features
 
 ### Control Logic
-```systemverilog
-// Write Logic
-always@(posedge clk) begin
-    if(write_en & !full) begin
-        fifo[write_ptr] <= data_in;
-        write_ptr <= write_ptr + 1;
-    end
-end
-
-// Read Logic  
-always@(posedge clk) begin
-    if(read_en & !empty) begin
-        data_out <= fifo[read_ptr];
-        read_ptr <= read_ptr + 1;
-    end
-end
-
-// Status Flags
-assign full = ((write_ptr + 1'b1) == read_ptr);
-assign empty = (write_ptr == read_ptr);
-```
-
-## Simulation and Verification
-
-### Prerequisites
-- **Questa Sim** or compatible SystemVerilog simulator
-- **UVM Library** (included in most modern simulators)
-- **EDAPlayground** account (for online simulation)
-
-### Running Simulation
-
-#### Local Questa Simulation
-```bash
-# Compile and simulate
-vlog -sv +incdir+$UVM_HOME/src $UVM_HOME/src/uvm_pkg.sv
-vlog -sv sync_fifo.sv fifo_tb.sv
-vsim -c top -do "run -all; quit"
-
-# With GUI
-vsim top
-run -all
-```
-
-#### EDAPlayground Setup
-1. Upload `sync_fifo.sv` and `fifo_tb.sv`
-2. Select "UVM/OVM" testbench
-3. Choose Questa simulator
-4. Run simulation
-
-### Verification Features
-- **Random Data Generation**: 16-bit random data patterns
-- **Controlled Operations**: Mutually exclusive write/read operations
-- **Coverage**: 10 transactions per test run
-- **Waveform Dumping**: VCD file generation for analysis
-
-## Physical Implementation
-
-### OpenLane Flow
-The design has been successfully synthesized and implemented using the OpenLane flow:
-
-### KLayout Integration
-- **Layout Visualization**: Complete physical layout view
-- **Layer Stack**: Standard digital CMOS layers
-- **Design Rules**: Sky130 PDK compliance
-
-## Key Design Features
-
-### Pointer Management
-- **Wrap-around Logic**: Automatic pointer increment with overflow
-- **4-bit Pointers**: Efficient for 16-deep FIFO
-- **Separate Read/Write**: Independent pointer control
-
-### Flag Generation
 - **Full Detection**: `(write_ptr + 1) == read_ptr`
-- **Empty Detection**: `write_ptr == read_ptr`
-- **Combinational Logic**: Immediate status updates
+- **Empty Detection**: `write_ptr == read_ptr`  
+- **Pointer Management**: 4-bit pointers with wrap-around
+- **Synchronous Reset**: All registers cleared on reset
 
-### UVM Best Practices
-- **Factory Pattern**: Proper object creation using `type_id::create()`
-- **Configuration Database**: Interface passing via `uvm_config_db`
-- **Phase Management**: Proper objection raising/dropping
-- **Randomization**: Constrained random testing
+### Physical Implementation
+- **Technology**: SkyWater Sky130 PDK
+- **Clock Frequency**: 100MHz (10ns period)
+- **Core Utilization**: 40%
+- **Die Area**: 150μm × 150μm
 
-## Simulation Results
+## Results
 
 ### Timing Analysis
 - **Clock Period**: 10ns (100MHz)
 - **Reset Duration**: 20ns
 
 ![Simulations](https://github.com/user-attachments/assets/bcaeb8a6-6eda-434e-aca0-f1d01af5dfa7)
-### KLayout View
+### KLayout Display
 ![KLayout_view](https://github.com/user-attachments/assets/446027ab-5a73-4461-aa02-026a9b9fa61a)
 
 ## Applications
