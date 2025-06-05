@@ -177,19 +177,8 @@ The design has been successfully synthesized and implemented using the OpenLane 
 ### Timing Analysis
 - **Clock Period**: 10ns (100MHz)
 - **Reset Duration**: 20ns
-- **Setup/Hold**: Met for all paths
 
-## Tools and Environment
-
-### Simulation Tools
-- **Questa Sim**: Primary simulation environment
-- **EDAPlayground**: Online verification platform
-- **UVM**: Industry-standard verification methodology
-
-### Physical Design Tools
-- **OpenLane**: Open-source ASIC flow
-- **KLayout**: Layout editor and viewer
-- **Sky130 PDK**: Open-source process design kit
+![Simulations](https://github.com/user-attachments/assets/bcaeb8a6-6eda-434e-aca0-f1d01af5dfa7)
 
 ## Applications
 
